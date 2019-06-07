@@ -75,6 +75,7 @@ enum KhiRobotState
     DISCONNECTING,
     DISCONNECTED,
     ERROR,
+    HOLDED,
     RESTART,
     QUIT,
     NOT_REGISTERED,
@@ -91,6 +92,7 @@ const static std::string KhiRobotStateName[STATE_MAX] =
     "DISCONNECTING",
     "DISCONNECTED",
     "ERROR",
+    "HOLDED",
     "RESTART",
     "QUIT",
     "NOT_REGISTERED"

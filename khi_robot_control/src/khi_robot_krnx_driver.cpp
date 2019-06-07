@@ -72,6 +72,7 @@ KhiRobotKrnxDriver::KhiRobotKrnxDriver() : KhiRobotDriver()
     for ( int cno = 0; cno < KRNX_MAX_CONTROLLER; cno++ )
     {
         rtc_seq_no[cno]= 0;
+        do_hold[cno] = false;
         do_restart[cno] = false;
         do_quit[cno] = false;
     }
@@ -664,12 +665,6 @@ bool KhiRobotKrnxDriver::updateState( const int cont_no )
 
     if ( !contLimitCheck( cont_no, KRNX_MAX_CONTROLLER ) ) { return false; }
 
-    if ( ( getState( cont_no ) == QUIT ) )
-    {
-        /* do nothing */
-        return true;
-    }
-
     if ( do_quit[cont_no] )
     {
         setState( cont_no, QUIT );
@@ -680,9 +675,10 @@ bool KhiRobotKrnxDriver::updateState( const int cont_no )
     state = getState( cont_no );
     if ( state  == QUIT )
     {
+        /* do nothing */
         return true;
     }
-    else if ( state == ERROR )
+    else if ( ( state == ERROR ) || ( state == HOLDED ) )
     {
         if ( do_restart[cont_no] )
         {
@@ -693,6 +689,19 @@ bool KhiRobotKrnxDriver::updateState( const int cont_no )
     }
     else
     {
+        if ( do_hold[cont_no] )
+        {
+            /* Hold Program */
+            for ( int ano = 0; ano < robot_info[cont_no].arm_num; ano++ )
+            {
+                return_code = krnx_Hold( cont_no, ano, &error_code );
+                if ( !retKrnxRes( cont_no, "krnx_Hold", return_code ) ) { return false; }
+            }
+            setState( cont_no, HOLDED );
+            do_hold[cont_no] = false;
+            return true;
+        }
+
         if ( in_simulation ) { return true; }
 
         for ( int ano = 0; ano < robot_info[cont_no].arm_num; ano++ )
@@ -712,7 +721,7 @@ bool KhiRobotKrnxDriver::updateState( const int cont_no )
             {
                 snprintf( msg, sizeof(msg), "RTC SWITCH turned OFF %d: ano:%d", cont_no, ano+1 );
                 errorPrint( std::string(msg) );
-                setState( cont_no, ERROR );
+                setState( cont_no, HOLDED );
                 return true;
             }
         }
@@ -864,7 +873,7 @@ bool KhiRobotKrnxDriver::syncRtcPos( const int cont_no, JointData *joint )
 
         /* Driver */
         if ( !getCurMotionData( cont_no, ano, &motion_data ) ) { return false; }
-        for ( int jt = 0; jt < joint->joint_num; jt++ )
+        for ( int jt = 0; jt < p_rb_tbl[cont_no]->arm_tbl[ano].jt_num; jt++ )
         {
             memcpy( &p_rb_tbl[cont_no]->arm_tbl[ano].jt_tbl[jt].home, &motion_data.ang_ref[jt], sizeof(motion_data.ang_ref[jt]) );
             if ( p_rb_tbl[cont_no]->arm_tbl[ano].jt_tbl[jt].type == TYPE_LINE )
@@ -911,10 +920,22 @@ bool KhiRobotKrnxDriver::commandHandler( khi_robot_msgs::KhiRobotCmd::Request &r
         {
             res.cmd_ret = getStateName( cont_no );
         }
+        else if ( req.cmd == "hold" )
+        {
+            if ( getState( cont_no ) == ACTIVE ) { do_hold[cont_no] = true; }
+            else                                 { res.cmd_ret = "NOT ACTIVE STATE"; }
+        }
         else if ( req.cmd == "restart" )
         {
-            if ( getState( cont_no ) == ERROR ) { do_restart[cont_no] = true; }
-            else                                { res.cmd_ret = "NOT ERROR STATE"; }
+            if ( ( getState( cont_no ) == ERROR ) ||
+                 ( getState( cont_no ) == HOLDED ) )
+            {
+                do_restart[cont_no] = true;
+            }
+            else
+            {
+                res.cmd_ret = "NOT ERROR/HOLDED STATE";
+            }
         }
         else if ( req.cmd == "quit" )
         {

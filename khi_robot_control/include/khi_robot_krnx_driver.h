@@ -92,6 +92,7 @@ private:
     /* general */
     char cmd_buf[KRNX_MSGSIZE];
     char msg_buf[KRNX_MSGSIZE];
+    bool do_hold[KRNX_MAX_CONTROLLER];
     bool do_restart[KRNX_MAX_CONTROLLER];
     bool do_quit[KRNX_MAX_CONTROLLER];
 
