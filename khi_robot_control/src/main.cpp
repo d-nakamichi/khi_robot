@@ -332,7 +332,7 @@ void *controlLoop( void* )
     {
         ROS_ERROR( "Failed to open KHI robot" );
         publisher.stop();
-        robot.deactivate();
+        robot.close();
         ros::shutdown();
         return NULL;
     }
@@ -340,6 +340,7 @@ void *controlLoop( void* )
     {
         publisher.stop();
         robot.deactivate();
+        robot.close();
         ros::shutdown();
         return NULL;
     }
@@ -468,6 +469,7 @@ void *controlLoop( void* )
     }
     publisher.stop();
     robot.deactivate();
+    robot.close();
     ROS_INFO( "KHI robot control ended." );
     ros::shutdown();
     return NULL;

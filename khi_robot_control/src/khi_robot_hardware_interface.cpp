@@ -43,6 +43,7 @@ KhiRobotHardwareInterface::KhiRobotHardwareInterface()
 KhiRobotHardwareInterface::~KhiRobotHardwareInterface()
 {
     deactivate();
+    close();
 }
 
 bool KhiRobotHardwareInterface::open( std::string robot_name, std::string ip_address, double period, bool in_simulation )
@@ -104,6 +105,11 @@ bool KhiRobotHardwareInterface::activate()
 void KhiRobotHardwareInterface::deactivate()
 {
     client->deactivate();
+}
+
+void KhiRobotHardwareInterface::close()
+{
+    client->close();
     delete client;
 }
 

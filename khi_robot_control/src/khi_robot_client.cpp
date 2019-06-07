@@ -80,6 +80,12 @@ void KhiRobotClient::deactivate()
     if ( driver == NULL ) { return; }
 
     driver->deactivate( cont_no );
+}
+
+void KhiRobotClient::close()
+{
+    if ( driver == NULL ) { return; }
+
     driver->close( cont_no );
     delete driver;
 }

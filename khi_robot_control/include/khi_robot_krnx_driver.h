@@ -107,7 +107,9 @@ private:
     bool conditionCheck( const int cont_no );
     bool setJointDataHome( const int cont_no, JointData *joint );
     std::vector<std::string> splitString( const std::string str, const char del );
-    bool makeRtcParam( const int cont_no, const std::string name, char *p_path, size_t p_path_siz, JointData *joint );
+    bool loadDriverParam( const int cont_no );
+    bool loadRtcProg( const int cont_no, const std::string name );
+    bool syncRtcPos( const int cont_no, JointData *joint );
 };
 
 } // namespace
