@@ -52,12 +52,18 @@ duAro適用: ```ASF_06000000J``` 以上
 
 ### 3-1. リアルタイム制御の開始
 
-リアルタイム制御を開始するため、ROSのPCで以下のコマンドを実行してください。  
+ACTIVE状態からリアルタイム制御を開始する場合は、ROSのPCで以下のコマンドを実行してください。  
 
 (例)RS007N:
 
 ```bash
 roslaunch khi_robot_bringup rs007n_bringup.launch ip:=[Controller’s IP address]
+```
+
+INACTIVE状態からリアルタイム制御を開始する場合は、ROSのPCで以下のコマンドを実行してください。  
+
+```bash
+roslaunch khi_robot_bringup rs007n_bringup.launch ip:=[Controller’s IP address] state:=INACTIVE
 ```
 
 リアルタイム制御プロセスが開始すると、以下のメッセージがプロセス上で表示されます。  
@@ -69,14 +75,14 @@ KHI robot control started. [NOT REALTIME]/[REALTIME]
 
 メッセージに`[REALTIME]`が含まれる場合、プロセスは`SCHED_FIFO`スケジューリングで動作しているため、問題ありません。
 
-リアルタイム制御プロセスが制御可能状態となると、以下のメッセージがプロセス上で表示されます。
+リアルタイム制御プロセスがロボットアーム制御可能になると、以下のメッセージがプロセス上で表示されます。
 
 ```bash
 [KhiRobotKrnxDriver] State 0: ACTIVATING -> ACTIVE
 ```
 
-メッセージの表示以降は、rvizでの操作インタフェースやpythonのMoveIt! Commanderを使用することで実機ロボットのリアルタイム制御を開始できます。  
-リアルタイム制御中は、ティーチペンダントの画面は以下の図のように表示されます。
+メッセージの表示以降は、rvizでの操作インタフェースやpythonのMoveIt! Commanderを使用することで実機ロボットアームの制御が可能となります。  
+ロボットアーム制御中は、ティーチペンダントの画面は以下の図のように表示されます。
 
 ![START Display on TP](start-display-on-tp-ja.png)]
 
@@ -96,11 +102,11 @@ ROS上でロボットコントローラを制御するため、ドライバと�
 ```text
 0:  "INIT"            - 初期状態
 1:  "CONNECTING"      - ロボットコントローラと接続中
-2:  "CONNECTED"       - ロボットコントローラと接続済み。リアルタイム制御は未実行。
-3:  "ACTIVATING"      - リアルタイム制御を開始中
-4:  "ACTIVE"          - リアルタイム制御中
-5:  "HOLDED"          - リアルタイム制御を中断中
-6:  "DEACTIVATING"    - リアルタイム制御を停止中
+2:  "CONNECTED"       - ロボットコントローラと接続済み。ロボットアーム制御は未実行。
+3:  "ACTIVATING"      - ロボットアーム制御を開始中
+4:  "ACTIVE"          - ロボットアーム制御中
+5:  "HOLDED"          - ロボットアーム制御を中断中
+6:  "DEACTIVATING"    - ロボットアーム制御を停止中
 7:  "DISCONNECTING"   - ロボットコントローラから切断中
 8:  "DISCONNECTED"    - ロボットコントローラから切断済
 9:  "ERROR"           - エラー中
@@ -196,11 +202,11 @@ int32 as_ret -> ASのリターンコード。ASのマニュアルを参照。
 string cmd_ret -> 未使用
 ```
 
-### ACTIVE状態への復帰
+### ACTIVE状態に遷移
 
 ```text
 string type -> "driver"
-string cmd -> "restart"
+string cmd -> "activate" または "restart"
 ---
 int32 driver_ret -> ドライバのリターンコード。krnx.hのKRNX_E_***を参照。
 int32 as_ret -> ASのリターンコード。ASのマニュアルを参照。
@@ -235,7 +241,7 @@ string cmd_ret -> 未使用
 |Please change Robot Controller's TEACH LOCK to OFF|ロボットコントローラのティーチロックをOFFにしてください。|
 |Please change Robot Controller's EMERGENCY to OFF|非常停止をOFFにしてください。|
 |AS ERROR [cont_no]: ano:[arm_no] code:[as_error_code]|リアルタイム制御中にエラーが発生しました。<br>ロボットコントローラの"as_error_code "を確認し、[AS言語解説書]に従ってエラーを解消してください。|
-|RTC SWITCH turned OFF [cont_no]: ano:[arm_no]|ロボットコントローラのリアルタイム制御がOFFになりました。リアルタイム制御を再開するためには"restart"で制御を再開する必要があります。|
+|RTC SWITCH turned OFF [cont_no]: ano:[arm_no]|ロボットコントローラのロボットアーム制御がOFFになりました。ロボットアーム制御を再開するためには"activate"でロボットアーム制御状態にする必要があります。|
 |[krnx_api] returned -[krnx_error_code]|KRNXの%sのAPIがエラーコード-0x%Xを出力しています。KRNXのAPIのエラーコードを参照し、エラーを解消してください。|
 
 エラーが"krnx_PrimeRtcCompData"に関するものである場合は、詳細情報が以下のように表示されます:  
@@ -303,6 +309,6 @@ KRNXのAPIのエラーコードは“khi_robot/khi_robot_control/include/krnx.h�
 ## 7. 注意事項
 
 * Ubuntu 16.04のリアルタイムカーネルを使用してください。
-* リアルタイム制御中、ロボットコントローラはリピートモードと同じ状態です。そのため、リアルタイム制御中は周囲の安全に注意してください。
+* ACTIVE/HOLD状態のとき、ロボットコントローラはリピートモードと同じ状態です。そのため、ACTIVE/HOLD状態のときは周囲の安全に注意してください。
 * "khi_robot"パッケージに変更は加えないでください。
 * 動作計画や指令値生成方法の詳細については、MoveIt!のドキュメントやコミュニティを参照してください。

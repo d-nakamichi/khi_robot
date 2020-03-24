@@ -108,7 +108,7 @@ enum KhiRobotStateTrigger
     TRIGGER_MIN = -1,
     NONE,
     HOLD,
-    RESTART,
+    ACTIVATE,
     QUIT,
     TRIGGER_MAX
 };
@@ -116,7 +116,7 @@ const static std::string KhiRobotStateTriggerName[TRIGGER_MAX] =
 {
     "NONE",
     "HOLD",
-    "RESTART",
+    "ACTIVATE",
     "QUIT"
 };
 

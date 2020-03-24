@@ -984,11 +984,11 @@ bool KhiRobotKrnxDriver::commandHandler( khi_robot_msgs::KhiRobotCmd::Request& r
                 res.cmd_ret = "NOT ACTIVE STATE";
             }
         }
-        else if ( req.cmd == "restart" )
+        else if ( req.cmd == "activate" || req.cmd == "restart" )
         {
             if ( ( state == INACTIVE ) || ( state == HOLDED ) || ( state == ERROR ) )
             {
-                setStateTrigger( cont_no, RESTART );
+                setStateTrigger( cont_no, ACTIVATE );
             }
             else
             {

@@ -73,6 +73,7 @@ static struct
   std::string ip_;
   bool simulation_;
   std::string robot_;
+  std::string initial_state_;
 }
 g_options;
 
@@ -85,6 +86,7 @@ void Usage( const string &msg = "" )
     fprintf(stderr, "    -p, --period                RT loop period in msec\n");
     fprintf(stderr, "    -v, --viewer                Viewing robot through Rviz\n");
     fprintf(stderr, "    -r, --robot                 Robot name\n");
+    fprintf(stderr, "    -s, --state                 Initial state\n");
     fprintf(stderr, "    -h, --help                  Print this message and exit\n");
     if ( msg != "" )
     {
@@ -337,7 +339,8 @@ void *controlLoop( void* )
         ros::shutdown();
         return NULL;
     }
-    if ( !activate( robot, &tick ) )
+
+    if ( g_options.initial_state_ == "ACTIVE" && !activate( robot, &tick ) )
     {
         publisher.stop();
         robot.deactivate();
@@ -371,7 +374,7 @@ void *controlLoop( void* )
                 robot.hold();
                 continue;
             }
-            else if ( state_trigger == khi_robot_control::RESTART )
+            else if ( state_trigger == khi_robot_control::ACTIVATE )
             {
                 if ( activate( robot, &tick ) )
                 {
@@ -510,9 +513,10 @@ int main(int argc, char *argv[])
             {"viewer", no_argument, 0, 'v'},
             {"period", required_argument, 0, 'p'},
             {"robot", required_argument, 0, 'r'},
+            {"state", required_argument, 0, 's'},
         };
         int option_index = 0;
-        int c = getopt_long( argc, argv, "hi:lvp:r:", long_options, &option_index );
+        int c = getopt_long( argc, argv, "hi:lvp:r:s:", long_options, &option_index );
         if (c == -1)
         {
             break;
@@ -539,6 +543,9 @@ int main(int argc, char *argv[])
             break;
           case 'r':
             g_options.robot_ = std::string(optarg);
+            break;
+          case 's':
+            g_options.initial_state_ = std::string(optarg);
             break;
           default:
             break;

@@ -52,12 +52,18 @@ Make sure that the Ubuntu PC used for real-time control satisfies the following 
 
 ### 3-1. Start the real-time control
 
-Execute the following command on the ROS running PC to start the real-time control.  
+Execute the following command on the ROS running PC to start the real-time control with ACTIVE state.  
 
 (e.g.)RS007N:
 
 ```bash
 roslaunch khi_robot_bringup rs007n_bringup.launch ip:=[Controller’s IP address]
+```
+
+If you want to star the real-time control with INACTIVE state, execute the following command.  
+
+```bash
+roslaunch khi_robot_bringup rs007n_bringup.launch ip:=[Controller’s IP address] state:=INACTIVE
 ```
 
 When the real-time control process is started, the following message will be displayed by the process.  
@@ -68,14 +74,14 @@ KHI robot control started. [NOT REALTIME]/[REALTIME]
 
 If the message includes `[REALTIME]`, the process is using `SCHED_FIFO` scheduling.
 
-When the real-time control process is ready to go, the following messages will be displayed by the process.
+When the real-time control process is ready to control robot arm, the following messages will be displayed by the process.
 
 ```bash
 [KhiRobotKrnxDriver] State 0: ACTIVATING -> ACTIVE
 ```
 
-Once the above messages is confirmed, you are able to start real-time control of the robot from the operation interface of “rviz” or the python’s MoveIt! Commander.  
-During the real-time control, the display on the Teach pendant will show the figure below.
+Once the above messages is confirmed, you are able to control robot arm of the robot from the operation interface of “rviz” or the python’s MoveIt! Commander.  
+During the control of robot arm, the display on the Teach pendant will show the figure below.
 
 ![START Display on TP](start-display-on-tp.png)]
 
@@ -96,9 +102,9 @@ To control robot controller on ROS, the drivere has control states.
 0:  "INIT"            - Driver init state.
 1:  "CONNECTING"      - Driver is now connecting to Robot Controller.
 2:  "CONNECTED"       - Driver is connected to Robot Controller, but cannot control Robot Arm.
-3:  "ACTIVATING"      - Driver is now activating Robot Arm.
+3:  "ACTIVATING"      - Driver is now activating Robot Arm control.
 4:  "ACTIVE"          - Driver can control Robot Arm.
-5:  "HOLDED"          - Driver is holded. Driver doesn't move Robot Arm.
+5:  "HOLDED"          - Driver is holded. Driver doesn't control Robot Arm.
 6:  "DEACTIVATING"    - Driver is now deactivating Robot Arm.
 7:  "DISCONNECTING"   - Driver is now disconnecting to Robot Controller.
 8:  "DISCONNECTED"    - Driver is disconnected to Robot Controller.
@@ -195,11 +201,11 @@ int32 as_ret -> AS return code. Refer AS manual.
 string cmd_ret -> NOT USED
 ```
 
-### Restart Driver for ACTIVE
+### Activate Driver for ACTIVE
 
 ```text
 string type -> "driver"
-string cmd -> "restart"
+string cmd -> "activate" or "restart"
 ---
 int32 driver_ret -> driver's return code. Refer KRNX_E_*** in krnx.h
 int32 as_ret -> AS return code. Refer AS manual.
@@ -234,7 +240,7 @@ Frequent error messages and troubleshooting are as shown in the table below.
 |Please change Robot Controller's TEACH LOCK to OFF|Set the TEACH LOCK on the robot controller to OFF.|
 |Please change Robot Controller's EMERGENCY to OFF|Release the EMERGENCY button.|
 |AS ERROR [cont_no]: ano:[arm_no] code:[as_error_code]|Error occurred during the real-time control.<br>Check the error code “as_error_code” of the robot controller and release the error by referring to the [AS Language Reference Manual].|
-|RTC SWITCH turned OFF [cont_no]: ano:[arm_no]|Real-time control of the robot controller turned OFF. It needs to restart to control again.|
+|RTC SWITCH turned OFF [cont_no]: ano:[arm_no]|Robot arm control of the robot controller turned OFF. It needs to activate again.|
 |[krnx_api] returned -[krnx_error_code]|API %s of KRNX returned the error code -0x%X. Refer to the error code of the KRNX API and release the error.|
 
 If an error is about "krnx_PrimeRtcCompData", the detail information is shown as below:  
@@ -302,6 +308,6 @@ Error code of KRNX API is defined in “khi_robot/khi_robot_control/include/krnx
 ## 7. Precausions
 
 * Make sure to use realtime kernel for Ubuntu 16.04.
-* When a robot controller is in the real-time control mode, its state is same as the REPEAT mode. Therefore make sure to the safety issues when the robot controller is in real-time control mode.
+* When a robot controller is in the ACTIVE/HOLD state, its state is same as the REPEAT mode. Therefore make sure to the safety issues when the robot controller is in ACTIVE/HOLD state.
 * Never make any changes on the sources of the “khi_robot” package.
 * Refer to the Documents and community of the MoveIt! for more details on motion/path planning and how to calculate command value.

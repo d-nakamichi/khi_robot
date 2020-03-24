@@ -8,6 +8,7 @@
   <arg name="ip" default="192.168.0.2" />
   <arg name="period" default="2" />
   <arg name="robot" default="RS007N" />
+  <arg name="state" default="ACTIVE" />
 
   <!-- Load robot description -->
   <param name="robot_description"
@@ -23,6 +24,7 @@
     <arg name="ip" value="$(arg ip)" />
     <arg name="period" value="$(arg period)" />
     <arg name="robot" value="$(arg robot)" />
+    <arg name="state" value="$(arg state)" />
   </include>
 
   <!-- If needed, broadcast static tf for robot root -->
