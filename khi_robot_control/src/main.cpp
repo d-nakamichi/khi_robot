@@ -113,7 +113,6 @@ static struct
     int overruns;
     int recent_overruns;        /* overruns during publishing */
     int last_overrun;           /* diagnostics count after last overruns occurred */
-    int last_severe_overrun;    /* diagnostics severe count after last overruns occurred */
     double overrun_loop_sec;
     double overrun_read;
     double overrun_write;
@@ -167,13 +166,18 @@ static void publishDiagnostics(RealtimePublisher<diagnostic_msgs::DiagnosticArra
         status.addf("Realtime Loop Frequency", "%.4f", g_stats.rt_loop_frequency);
 
         status.name = "Realtime Control Loop";
-        if (g_stats.overruns > 0 && g_stats.last_overrun < 30)
+        if (g_stats.overruns > 0)
         {
-          if (g_stats.last_severe_overrun < 30)
-            status.level = diagnostic_msgs::DiagnosticStatus::WARN;
-          else
+          if (g_stats.last_overrun < 30)
+          {
             status.level = diagnostic_msgs::DiagnosticStatus::ERROR;
-          status.message = "Realtime loop used too much time in the last 30 seconds.";
+            status.message = "Realtime loop used too much time in the last 30 seconds.";
+          }
+          else
+          {
+            status.level = diagnostic_msgs::DiagnosticStatus::WARN;
+            status.message = "Realtime loop used too much time before.";
+          }
         }
         else
         {
@@ -182,7 +186,6 @@ static void publishDiagnostics(RealtimePublisher<diagnostic_msgs::DiagnosticArra
         }
         g_stats.recent_overruns = 0;
         ++g_stats.last_overrun;
-        ++g_stats.last_severe_overrun;
 
         if (g_stats.rt_loop_not_making_timing)
           status.mergeSummaryf(status.ERROR, "realtime loop only ran at %.4f Hz", g_stats.halt_rt_loop_frequency);
@@ -449,19 +452,8 @@ void *controlLoop( void* )
             tick.tv_nsec = ( before.tv_nsec / g_options.period_ ) * g_options.period_;
             timespecInc( tick, g_options.period_ );
 
-            /* Initialize overruns */
-            if ( g_stats.overruns == 0 )
-            {
-                g_stats.last_overrun = 1000;
-                g_stats.last_severe_overrun = 1000;
-            }
             /* Check for overruns */
-            if ( g_stats.recent_overruns > 10 )
-            {
-                g_stats.last_severe_overrun = 0;
-            }
             g_stats.last_overrun = 0;
-
             ++g_stats.overruns;
             ++g_stats.recent_overruns;
             g_stats.overrun_read = after_read - start;
