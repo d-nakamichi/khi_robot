@@ -170,14 +170,14 @@ static void publishDiagnostics(RealtimePublisher<diagnostic_msgs::DiagnosticArra
         if (g_stats.overruns > 0 && g_stats.last_overrun < 30)
         {
           if (g_stats.last_severe_overrun < 30)
-            status.level = 1;
+            status.level = diagnostic_msgs::DiagnosticStatus::WARN;
           else
-            status.level = 0;
+            status.level = diagnostic_msgs::DiagnosticStatus::ERROR;
           status.message = "Realtime loop used too much time in the last 30 seconds.";
         }
         else
         {
-          status.level = 0;
+          status.level = diagnostic_msgs::DiagnosticStatus::OK;
           status.message = "OK";
         }
         g_stats.recent_overruns = 0;
